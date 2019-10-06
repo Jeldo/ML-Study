@@ -1,0 +1,4 @@
+*.tgz
+.idea/
+test/*
+simple_srcnn/venv
