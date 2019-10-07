@@ -144,7 +144,6 @@ for i in range(flag.step):
 
 
 saver.save(sess,'./model.ckpt-simple-srcnn')
-'''
 out_image=sess.run(net_output,feed_dict={input_image:blur_image})
 ois= out_image.shape
 out_image = np.reshape(out_image,(ois[1],ois[2]))
@@ -152,8 +151,6 @@ out_image = np.reshape(out_image,(ois[1],ois[2]))
 cv2.imwrite('./predicted_output.png',out_image)
 print('value of output',np.max(out_image),",",np.mean(out_image),",",np.min(out_image))
 
-'''
-'''
 save_image(sess.run(feature_sf,feed_dict={input_image:blur_image}),"feat1_sf")
 
 save_image(sess.run(feat_rb1_c1,feed_dict={input_image:blur_image}),"feat2_rb1_c1")
@@ -201,11 +198,9 @@ save_image(sess.run(feat_final,feed_dict={input_image:blur_image}),"feat32_final
 save_image(sess.run(feat_recon,feed_dict={input_image:blur_image}),"feat33_recon")
 
 
-'''
 
 
 
-'''
 feature_sf = sess.run(feature_sf,feed_dict={input_image:blur_image})
 save_image(feature_sf,"feat1_sf")
 
@@ -247,5 +242,4 @@ save_image(feat_recon,"feat13_recon")
 
 feat_up = sess.run(feat_up,feed_dict={input_image:blur_image})
 save_image(feat_up,"feature14_sf")
-'''
 
