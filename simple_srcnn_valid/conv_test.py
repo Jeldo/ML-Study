@@ -5,7 +5,7 @@ import os
 import SR_data_load
 
 tf.app.flags.DEFINE_float('lr', 0.0001, 'learninig rate')
-tf.app.flags.DEFINE_integer('step', 10000, 'step')
+tf.app.flags.DEFINE_integer('step', 1000, 'step')
 tf.app.flags.DEFINE_integer('image_size', 64, 'image_patch_size')
 tf.app.flags.DEFINE_boolean('restore_model', True, '')
 tf.app.flags.DEFINE_string('image_path','/your/data/set_path/*.jpg','Where is  Data Imageset')
@@ -13,7 +13,13 @@ flag= tf.app.flags.FLAGS
 
 
 
-os.environ['CUDA_VISIBLE_DEVICES']='1'
+os.environ['CUDA_VISIBLE_DEVICES']='0'
+
+for i in range(64):
+    if tf.gfile.Exists('./'+str(i)):
+        tf.gfile.DeleteRecursively('./'+str(i))
+    tf.gfile.MkDir('./'+str(i))
+
 
 def preprocess(images):
     pp_images= images/255.0
@@ -54,6 +60,7 @@ def pixelShuffler(features, scale=2):
 input_image= tf.placeholder(tf.float32,shape=[None,flag.image_size,flag.image_size,3],name="Inputimage")
 output_image= tf.placeholder(tf.float32,shape=[None,flag.image_size,flag.image_size,3],name="Ouputimage")
 
+input_valid_image = tf.placeholder(tf.float32,shape=[1,None,None,3],name="Input_Valid_Image")
 #######################
 # Network architecture#
 ###################################################
@@ -94,8 +101,21 @@ second_feature = second_conv(first_feature_relu)
 second_feature_relu = second_conv_relu(second_feature)
 
 #3nd layer : reconstruction 
-third_conv = third_conv(second_feature_relu)
-reconstructed_image = postprocess(third_conv)
+third_feature = third_conv(second_feature_relu)
+reconstructed_image = postprocess(third_feature)
+
+
+####################
+#Validation Network#
+####################
+pre_pro_valid = preprocess(input_valid_image)
+valid_first  = first_conv(pre_pro_valid)
+valid_first_relu = first_conv_relu(valid_first)
+valid_second =  second_conv(valid_first_relu)
+valid_second_relu = second_conv_relu(valid_second)
+valid_third = third_conv(valid_second_relu)
+valid_output = postprocess(valid_third)
+
 
 ##############################
 #Evaluation and loss function#
@@ -144,108 +164,20 @@ for i in range(flag.step):
 
 
 saver.save(sess,'./model.ckpt-simple-srcnn')
-'''
-out_image=sess.run(net_output,feed_dict={input_image:blur_image})
+
+#Test 
+test_image = cv2.imread('./lr_image.png')
+tis  = test_image.shape
+test_image_reshape = np.reshape(test_image,[1,tis[0],tis[1],tis[2]])
+out_image=sess.run(valid_output,feed_dict={input_valid_image:test_image_reshape})
 ois= out_image.shape
-out_image = np.reshape(out_image,(ois[1],ois[2]))
-
-cv2.imwrite('./predicted_output.png',out_image)
-print('value of output',np.max(out_image),",",np.mean(out_image),",",np.min(out_image))
-
-'''
-'''
-save_image(sess.run(feature_sf,feed_dict={input_image:blur_image}),"feat1_sf")
-
-save_image(sess.run(feat_rb1_c1,feed_dict={input_image:blur_image}),"feat2_rb1_c1")
-save_image(sess.run(feat_rb1_r1,feed_dict={input_image:blur_image}),"feat3_rb1_r1")
-save_image(sess.run(feat_rb1_c2,feed_dict={input_image:blur_image}),"feat4_rb1_c2")
-save_image(sess.run(feat_rb1_r2,feed_dict={input_image:blur_image}),"feat5_rb1_r2")
-save_image(sess.run(feat_rb1_c3,feed_dict={input_image:blur_image}),"feat6_rb1_c3")
-
-save_image(sess.run(feat_rb1_out,feed_dict={input_image:blur_image}),"feat7_rb1_out")
-
-save_image(sess.run(feat_rb2_c1,feed_dict={input_image:blur_image}),"feat8_rb2_c1")
-save_image(sess.run(feat_rb2_r1,feed_dict={input_image:blur_image}),"feat9_rb2_r1")
-save_image(sess.run(feat_rb2_c2,feed_dict={input_image:blur_image}),"feat10_rb2_c2")
-save_image(sess.run(feat_rb2_r2,feed_dict={input_image:blur_image}),"feat11_rb2_r2")
-save_image(sess.run(feat_rb2_c3,feed_dict={input_image:blur_image}),"feat12_rb2_c3")
-
-save_image(sess.run(feat_rb2_out,feed_dict={input_image:blur_image}),"feat13_rb2_out")
-
-save_image(sess.run(feat_rb3_c1,feed_dict={input_image:blur_image}),"feat14_rb3_c1")
-save_image(sess.run(feat_rb3_r1,feed_dict={input_image:blur_image}),"feat15_rb3_r1")
-save_image(sess.run(feat_rb3_c2,feed_dict={input_image:blur_image}),"feat16_rb3_c2")
-save_image(sess.run(feat_rb3_r2,feed_dict={input_image:blur_image}),"feat17_rb3_r2")
-save_image(sess.run(feat_rb3_c3,feed_dict={input_image:blur_image}),"feat18_rb3_c3")
-
-save_image(sess.run(feat_rb3_out,feed_dict={input_image:blur_image}),"feat19_rb3_out")
-
-save_image(sess.run(feat_rb4_c1,feed_dict={input_image:blur_image}),"feat20_rb4_c1")
-save_image(sess.run(feat_rb4_r1,feed_dict={input_image:blur_image}),"feat21_rb4_r1")
-save_image(sess.run(feat_rb4_c2,feed_dict={input_image:blur_image}),"feat22_rb4_c2")
-save_image(sess.run(feat_rb4_r2,feed_dict={input_image:blur_image}),"feat23_rb4_r2")
-save_image(sess.run(feat_rb4_c3,feed_dict={input_image:blur_image}),"feat24_rb4_c3")
-
-save_image(sess.run(feat_rb4_out,feed_dict={input_image:blur_image}),"feat25_rb4_out")
-
-save_image(sess.run(feat_rb5_c1,feed_dict={input_image:blur_image}),"feat26_rb5_c1")
-save_image(sess.run(feat_rb5_r1,feed_dict={input_image:blur_image}),"feat27_rb5_r1")
-save_image(sess.run(feat_rb5_c2,feed_dict={input_image:blur_image}),"feat28_rb5_c2")
-save_image(sess.run(feat_rb5_r2,feed_dict={input_image:blur_image}),"feat29_rb5_r2")
-save_image(sess.run(feat_rb5_c3,feed_dict={input_image:blur_image}),"feat30_rb5_c3")
-
-save_image(sess.run(feat_rb5_out,feed_dict={input_image:blur_image}),"feat31_rb5_out")
-
-save_image(sess.run(feat_final,feed_dict={input_image:blur_image}),"feat32_final")
-
-save_image(sess.run(feat_recon,feed_dict={input_image:blur_image}),"feat33_recon")
-
-
-'''
+out_image_reshape = np.reshape(out_image,(ois[1],ois[2],ois[3]))
+cv2.imwrite('./predicted_output.png',out_image_reshape)
 
 
 
-'''
-feature_sf = sess.run(feature_sf,feed_dict={input_image:blur_image})
-save_image(feature_sf,"feat1_sf")
-
-feat_rb1_c3 = sess.run(feat_rb1_c3,feed_dict={input_image:blur_image})
-save_image(feat_rb1_c3,"feat2_rb1_c3")
-
-feat_rb1_out = sess.run(feat_rb1_out,feed_dict={input_image:blur_image})
-save_image(feat_rb1_out,"feat3_rb1_out")
-
-feat_rb2_c3 = sess.run(feat_rb2_c3,feed_dict={input_image:blur_image})
-save_image(feat_rb2_c3,"feat4_rb2_c3")
-
-feat_rb2_out = sess.run(feat_rb2_out,feed_dict={input_image:blur_image})
-save_image(feat_rb2_out,"feat5_rb2_out")
-
-feat_rb3_c3 = sess.run(feat_rb3_c3,feed_dict={input_image:blur_image})
-save_image(feat_rb3_c3,"feat6_rb3_c3")
-
-feat_rb3_out = sess.run(feat_rb3_out,feed_dict={input_image:blur_image})
-save_image(feat_rb3_out,"feat7_rb3_out")
-
-feat_rb4_c3 = sess.run(feat_rb4_c3,feed_dict={input_image:blur_image})
-save_image(feat_rb4_c3,"feat8_rb4_c3")
-
-feat_rb4_out = sess.run(feat_rb4_out,feed_dict={input_image:blur_image})
-save_image(feat_rb4_out,"feat9_rb4_out")
-
-feat_rb5_c3 = sess.run(feat_rb5_c3,feed_dict={input_image:blur_image})
-save_image(feat_rb5_c3,"feat10_rb5_c3")
-
-feat_rb5_out = sess.run(feat_rb5_out,feed_dict={input_image:blur_image})
-save_image(feat_rb5_out,"feat11_rb5_out")
-
-feat_final = sess.run(feat_final,feed_dict={input_image:blur_image})
-save_image(feat_final,"feat12_final")
-
-feat_recon = sess.run(feat_recon,feed_dict={input_image:blur_image})
-save_image(feat_recon,"feat13_recon")
-
-feat_up = sess.run(feat_up,feed_dict={input_image:blur_image})
-save_image(feat_up,"feature14_sf")
-'''
-
+save_image(sess.run(valid_first,feed_dict={input_valid_image:test_image_reshape}),"1st_conv")
+save_image(sess.run(valid_first_relu,feed_dict={input_valid_image:test_image_reshape}),"1st_conv_relu")
+save_image(sess.run(valid_second,feed_dict={input_valid_image:test_image_reshape}),"2nd_conv")
+save_image(sess.run(valid_second_relu,feed_dict={input_valid_image:test_image_reshape}),"2nd_conv_relu")
+save_image(sess.run(valid_third,feed_dict={input_valid_image:test_image_reshape}),"3rd_conv")
