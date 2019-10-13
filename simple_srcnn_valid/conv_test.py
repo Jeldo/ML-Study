@@ -35,7 +35,7 @@ def save_image(image,feat_name):
     _,w,h,c = image.shape
     image=np.reshape(image,(w,h,c))
     for i in range(c):
-        cv2.imwrite(str('./'+str(i)+'/'+feat_name+'_'+str(i)+'.png'),np.reshape(image[:,:,i],(w,h)))
+        cv2.imwrite(str('./feature_map/'+str(i)+'/'+feat_name+'_'+str(i)+'.png'),np.reshape(image[:,:,i],(w,h)))
 
 def phaseShift(features, scale, shape_1, shape_2):
     X = tf.reshape(features, shape_1)
