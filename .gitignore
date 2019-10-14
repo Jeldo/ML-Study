@@ -3,3 +3,4 @@
 test/*
 simple_srcnn/venv
 *.zip
+__pycache__
