@@ -15,12 +15,6 @@ flag= tf.app.flags.FLAGS
 
 os.environ['CUDA_VISIBLE_DEVICES']='0'
 
-for i in range(64):
-    if tf.gfile.Exists('./'+str(i)):
-        tf.gfile.DeleteRecursively('./'+str(i))
-    tf.gfile.MkDir('./'+str(i))
-
-
 def preprocess(images):
     pp_images= images/255.0
     pp_images = pp_images*2.0 - 1.0
@@ -78,10 +72,10 @@ input_valid_image = tf.placeholder(tf.float32,shape=[1,None,None,3],name="Input_
 # 3rd layer : reconstruction layer
 #   kernel size : 5 , input channel : 32    , output channel : 3(RGB)
 #####################################################################
-first_conv = tf.keras.layers.Conv2D(kernel_size=9,filters=64,padding='SAME')
+first_conv = tf.keras.layers.Conv2D(kernel_size=9,filters=128,padding='SAME')
 first_conv_relu = tf.keras.layers.ReLU()
 
-second_conv =tf.keras.layers.Conv2D(kernel_size=1,filters=32,padding='SAME')
+second_conv =tf.keras.layers.Conv2D(kernel_size=1,filters=64,padding='SAME')
 second_conv_relu = tf.keras.layers.ReLU()
 
 third_conv =tf.keras.layers.Conv2D(kernel_size=5,filters=3,padding='SAME')
